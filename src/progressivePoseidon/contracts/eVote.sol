@@ -76,7 +76,8 @@ contract eVote {
             uint[2][2] memory proof_b, 
             uint[2] memory proof_c
         ) public {
-        require(block.number >= finishRegistartionBlockNumber && block.number < finishVotingBlockNumber, "Voting phase is already closed");
+        require(block.number >= finishRegistartionBlockNumber, "Voting phase is not yet started");
+        require(block.number < finishVotingBlockNumber, "Voting phase is already closed");
         require( msg.sender == voters[_Idx], "Unregistered voter");
         
 
@@ -111,7 +112,8 @@ contract eVote {
             uint[2] memory proof_c
         ) public {
         require(msg.sender==admin,"Only admin can set the tally result");
-        require(block.number >= finishVotingBlockNumber && block.number < finishTallyBlockNumber, "Tallying phase is already closed");
+        require(block.number >= finishVotingBlockNumber, "Tallying phase is not yet started");
+        require(block.number < finishTallyBlockNumber, "Tallying phase is already closed");
         
         if (noHashZeroOnesEncVote){
             for(uint i=voters.length; i<nVoters; i++){

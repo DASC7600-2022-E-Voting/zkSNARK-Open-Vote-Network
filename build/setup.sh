@@ -16,7 +16,7 @@ function circuitCompileGenKey(){
    verifierKeyName="$2"
    circuitLoc="$3"
    echo "${GREEN}Compiling $citcuitName circuit${NC}" >&2
-   compile_start=$(date +%s%N)
+   compile_start=$(gdate +%s%N)
    if ! circom ../circuits/"$circuitLoc"/"$citcuitName".circom --r1cs --wasm >&2  ||
       ! [[ -s ./"$citcuitName"_js/"$citcuitName".wasm ]]
    then
@@ -25,20 +25,20 @@ function circuitCompileGenKey(){
    else
       echo "${GREEN}$citcuitName compilation succeeded${NC}" >&2
    fi
-   compile_end=$(date +%s%N)
+   compile_end=$(gdate +%s%N)
 
    echo "${GREEN}Generating proving key for $citcuitName circuit${NC}" >&2
-   keyGen_start=$(date +%s%N)
+   keyGen_start=$(gdate +%s%N)
    $snarkjs groth16 setup "$citcuitName".r1cs potfinal.ptau "$citcuitName"000.zkey >&2
    if [[ ! -s "$citcuitName"000.zkey ]]; then
       echo "${RED}Generating proving key for $citcuitName circuit failed${NC}" >&2
-      echo "${RED}May need to update \$powersOfTau, for more information, https://github.com/iden3/snarkjs#7-prepare-phase-2${NC}" >&2
+      echo "${RED}May need to upgdate \$powersOfTau, for more information, https://github.com/iden3/snarkjs#7-prepare-phase-2${NC}" >&2
       exit -1
    fi
    $snarkjs zkey contribute "$citcuitName"000.zkey "$citcuitName"001.zkey --name="1st Contributor Name" -v -e="more random text" >&2
    $snarkjs zkey contribute "$citcuitName"001.zkey "$citcuitName"002.zkey --name="Second contribution Name" -v -e="Another random entropy" >&2
    $snarkjs zkey beacon "$citcuitName"002.zkey "$citcuitName"Final.zkey 0102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f 10 -n="Final Beacon phase2" >&2
-   keyGen_end=$(date +%s%N)
+   keyGen_end=$(gdate +%s%N)
    $snarkjs zkey export verificationkey "$citcuitName"Final.zkey "$verifierKeyName".json
    echo "${GREEN}Generating proving key for $citcuitName circuit completed${NC}" >&2
 
@@ -46,7 +46,7 @@ function circuitCompileGenKey(){
    Nconstraints=`$snarkjs r1cs info "$citcuitName".r1cs|grep "Constraints"|cut -d ":" -f 3`
    compileTime=$(((compile_end - compile_start)/1000000))
    keyGenTime=$(((keyGen_end - keyGen_start)/1000000))
-   provingKeySize=`stat -c%s "$citcuitName"Final.zkey`
+   provingKeySize=`gstat -c%s "$citcuitName"Final.zkey`
    
    #delete temp keys
    rm "$citcuitName"000.zkey
@@ -133,7 +133,7 @@ mkdir -p ../contracts
 mkdir -p ../test
 
 
-echo "Used Design: ${GREEN}$design${NC}, NUMBER_of_VOTERS = ${GREEN}$nVotersOpt${NC}"
+echo "Ugsed Design: ${GREEN}$design${NC}, NUMBER_of_VOTERS = ${GREEN}$nVotersOpt${NC}"
 
 # check dependencies
 if [[ ! -d "../node_modules" ]]; then
@@ -166,11 +166,11 @@ cp -r $srcDir/circuits/* ../circuits/
 
 PublicKeyGenStatistics=$(circuitCompileGenKey "PublicKeyGen" "verifier_PublicKey" "voter")
 
-sed -i "s/__NVOTERS__/$nVoters/g" ../circuits/voter/encryptedVoteGen.circom
+gsed -i "s/__NVOTERS__/$nVoters/g" ../circuits/voter/encryptedVoteGen.circom
 encryptedVoteGenStatistics=$(circuitCompileGenKey "encryptedVoteGen" "verifier_EncrpytedVote" "voter")
 
 
-sed -i "s/__NVOTERS__/$nVoters/g" ../circuits/administrator/tallying.circom
+gsed -i "s/__NVOTERS__/$nVoters/g" ../circuits/administrator/tallying.circom
 tallyingStatistics=$(circuitCompileGenKey "tallying" "verifier_tallying" "administrator")
 
 
@@ -178,18 +178,18 @@ tallyingStatistics=$(circuitCompileGenKey "tallying" "verifier_tallying" "admini
 echo "${GREEN}Modifying contracts${NC}"
 
 cp -r "$srcDir"/contracts/* ../contracts/
-sed -i "s/__NVOTERS__/$nVoters/g" ../contracts/eVote.sol
+gsed -i "s/__NVOTERS__/$nVoters/g" ../contracts/eVote.sol
 
 if [[ "$design" = "original" || "$design" = "sha256" ]]; then
    (( sign_size=(nVoters+252)/253 )); # ceil(nVoters/253)
    XSign=`python3 -c "print([0] * $sign_size)"`
-   sed -i "s/__XSIGN__/$XSign/g" ../contracts/eVote.sol
+   gsed -i "s/__XSIGN__/$XSign/g" ../contracts/eVote.sol
 fi
 
 echo "${GREEN}Modifying contracts completed${NC}"
 
 cp -r $srcDir/test/* ../test/
-sed -i "s/__NVOTERS__/$nVoters/g" ../test/completeTest.js
+gsed -i "s/__NVOTERS__/$nVoters/g" ../test/completeTest.js
 cp -r $srcDir/migrations/* ../migrations/
 cp -r $srcDir/helper/* ../helper/
 

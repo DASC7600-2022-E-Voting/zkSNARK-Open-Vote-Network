@@ -10,7 +10,7 @@ module.exports = function(deployer, network, accounts) {
     deployer.deploy(Migrations);
     deployer.deploy(verifierMerkleTree);
     deployer.deploy(verifierZKSNARK).then(function() {
-        return deployer.deploy(eVote, verifierMerkleTree.address, verifierZKSNARK.address, usersMerkleTree.getHexRoot(),300,300,300,{from:accounts[0], value:web3.utils.toWei("1","ether")})
+        return deployer.deploy(eVote, verifierMerkleTree.address, verifierZKSNARK.address, usersMerkleTree.getHexRoot(),300,300,300,{from:accounts[0], value:web3.utils.toWei("0.001","ether")})
     });
     
     

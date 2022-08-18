@@ -17,7 +17,7 @@ contract eVote {
     uint public finishRegistartionBlockNumber;
     uint public finishVotingBlockNumber;
     uint public finishTallyBlockNumber;
-    uint public constant DEPOSIT = 1 ether;
+    uint public constant DEPOSIT = 0.001 ether;
     uint public voteResult;
     uint[] public encryptedVotesXsign = __XSIGN__;
     uint public constant pm1d2 = 10944121435919637611123202872628637544274182200208017171849102093287904247808;

@@ -34,7 +34,7 @@ async function genEncryptedVote(inputs) {
 }
 
 
-async function genPublicKeysAndProofs(count) {
+async function genPublicKeysAndProofs(count, nOptions, encodingSize) {
     const babyJub = await buildBabyjub();
     const p = babyJub.p;
     const F = babyJub.F;
@@ -63,13 +63,14 @@ async function genPublicKeysAndProofs(count) {
               ],
             c: [proof.pi_c[0], proof.pi_c[1]]
         }
+        const voteOption = Math.floor((Math.random()*nOptions*10)) % nOptions;
+        const vote = encodingSize ** voteOption;
 
-        
         result.push({
             "Idx": i,
             "privateKey": privateKey,
             "publicKey" : publicSignals,
-            "Vote": Math.floor((Math.random()*10)) % 2,
+            "Vote": vote,
             "encryptedVote": null,
             "publicKeyProof": publicKeyProof,
             "encryptedVoteProof": null
@@ -113,8 +114,8 @@ async function genEncryptedVotesAndProofs(voters){
 
 }
 
-async function genTestData(length) {
-    const res = await genPublicKeysAndProofs(length);
+async function genTestData(length, nOptions, encodingSize) {
+    const res = await genPublicKeysAndProofs(length, nOptions, encodingSize);
     await genEncryptedVotesAndProofs(res);
     return res;
 }

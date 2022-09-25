@@ -15,7 +15,7 @@ Install docker, then build and run thedev  env with docker-compose
 
 # Execution
  - `cd build`
- - Run `./setup.sh -d [DESIGN_TO_BE_USED] -n [NUMBER_of_VOTERS]`
+ - Run `./setup.sh -d [DESIGN_TO_BE_USED] -n [NUMBER_of_VOTERS] -o [NUMBER_OF_VOTING_OPTIONS]`
     where `[DESIGN_TO_BE_USED]` could be:
  
 	 - `original`: Our original proposed design

@@ -76,10 +76,10 @@ function printStatistics(){
 
 # Main()
 
-useMessage="Useage: ./setup.sh -d ${GREEN}[original|sha256|progressiveSha256|progressivePoseidon]${NC} -n ${GREEN}[NUMBER_of_VOTERS]${NC}"
+useMessage="Usage: ./setup.sh -d ${GREEN}[original|sha256|progressiveSha256|progressivePoseidon]${NC} -n ${GREEN}[NUMBER_of_VOTERS]${NC} -o [NUMBER_of_VOTING_OPTIONS]"
 
 # Parsing arguments
-while getopts "hd:n:" opt
+while getopts "hd:n:o:" opt
 do
    case "$opt" in
       d) 
@@ -93,6 +93,13 @@ do
       n)
          nVotersOpt="$OPTARG";
          if [[ $nVotersOpt -le "0" ]]; then
+            echo $useMessage;
+            exit 1
+         fi
+      ;;
+      o)
+         nVotingOptionsOpt="$OPTARG";
+         if [[ $nVotingOptionsOpt -le "0" ]]; then
             echo $useMessage;
             exit 1
          fi
@@ -114,6 +121,7 @@ done
 
 design="${designOpt:-original}"
 nVoters="${nVotersOpt:-3}"
+nVotingOptions="${nVotingOptionsOpt:-3}"
 srcDir=../src/"$design"
 snarkjs=../node_modules/.bin/snarkjs
 
@@ -161,12 +169,17 @@ if [[ "$design" = "progressiveSha256" || "$design" = "sha256" ]]; then
    export NODE_OPTIONS=--max-old-space-size=32768
 fi
 
+encodingSize=$(node "../helper/findEncodingSize.js" "${nVoters}")
+echo "Using encoding size: ${encodingSize}"
+
 # compile and key Gen
 cp -r $srcDir/circuits/* ../circuits/
 
 PublicKeyGenStatistics=$(circuitCompileGenKey "PublicKeyGen" "verifier_PublicKey" "voter")
 
 sed -i "s/__NVOTERS__/$nVoters/g" ../circuits/voter/encryptedVoteGen.circom
+sed -i "s/__NOPTION__/$nVotingOptions/g" ../circuits/voter/encryptedVoteGen.circom
+sed -i "s/__ENCODINGSIZE__/$encodingSize/g" ../circuits/voter/encryptedVoteGen.circom
 encryptedVoteGenStatistics=$(circuitCompileGenKey "encryptedVoteGen" "verifier_EncrpytedVote" "voter")
 
 
@@ -190,6 +203,9 @@ echo "${GREEN}Modifying contracts completed${NC}"
 
 cp -r $srcDir/test/* ../test/
 sed -i "s/__NVOTERS__/$nVoters/g" ../test/completeTest.js
+sed -i "s/__NOPTION__/$nVotingOptions/g" ../test/completeTest.js
+sed -i "s/__ENCODINGSIZE__/$encodingSize/g" ../test/completeTest.js
+
 cp -r $srcDir/migrations/* ../migrations/
 cp -r $srcDir/helper/* ../helper/
 

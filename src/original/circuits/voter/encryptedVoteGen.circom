@@ -1,4 +1,4 @@
-pragma circom 2.0.0;
+pragma circom 2.0.6;
 include "../../node_modules/circomlib/circuits/babyjub.circom";
 include "../../node_modules/circomlib/circuits/mux1.circom";
 include "../Utils/Utils.circom";
@@ -46,7 +46,7 @@ template split(n){
 
 
 
-template encryptedVoteGen(n){
+template encryptedVoteGen(n, numberOfOptions, encodingSize){
     /*
     // Generate the encrypted vote for a voter i
     // let N be the number of votes and  the neutral element be the point O = (0, 1)
@@ -56,7 +56,7 @@ template encryptedVoteGen(n){
     signal input Idx;
     // a secret key xi
     signal input xi;
-    // a vote vi \in {0, 1}
+    // a vote vi \in encoding of encodingSize, where n < encodingSize
     signal input vote;
 
     // VotingKeysBeforei = [voting keys from 0 to i-1 then append (N-i-1) neutral elements] = [xG0, xG1, ..., xGi-1, O, O, O, ..., O], |VotingKeysBeforei| = N-1 = n
@@ -80,12 +80,30 @@ template encryptedVoteGen(n){
     // Encrpyted vote (c) = xi * Yi + vi * BASE
     signal output encryptedVote[2];
 
-    //Assert that the vote is binary
-    (vote) * (vote - 1) === 0;
+    var encodingBits = 0;
+    while (encodingSize > 0) {
+        encodingSize /= 2;
+        encodingBits += 1;
+    }
+    encodingBits *= numberOfOptions;
+
+    component num2Bits = Num2Bits(encodingBits);
+    num2Bits.in <== vote;
+    signal vbits[encodingBits];
+    for(var k = 0; k < encodingBits; k++) {
+        vbits[k] <== num2Bits.out[k];
+    }
+
+    var voteSum = 0;
+    for(var k = 0; k < encodingBits; k++) {
+        voteSum += vbits[k];
+    }
+    // only 1 opion is voted
+    voteSum === 1;
 
     // Check that the each pair of X and Y is on BabyJub curve
     component checkPoints = BabyCheckArray(n);
-    
+
     for(var i=0; i<n;i++){
         checkPoints.X[i] <== VotingKeysX[i];
         checkPoints.Y[i] <== VotingKeysY[i];
@@ -182,4 +200,4 @@ template encryptedVoteGen(n){
 }
 
 
-component main{public [VotingKeysY, Idx]} = encryptedVoteGen(__NVOTERS__);
+component main{public [VotingKeysY, Idx]} = encryptedVoteGen(__NVOTERS__, __NOPTION__, __ENCODINGSIZE__);

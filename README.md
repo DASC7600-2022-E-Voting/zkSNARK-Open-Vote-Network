@@ -9,6 +9,9 @@ This is the proof of concept of our paper "[Dispute-free Scalable Open Vote Netw
  5. Clone this repository and change directory to its path
  6. Install the required packages `npm i`
 
+# Development
+Install docker, then build and run thedev  env with docker-compose
+- `docker-compose run --rm dev`
 
 # Execution
  - `cd build`

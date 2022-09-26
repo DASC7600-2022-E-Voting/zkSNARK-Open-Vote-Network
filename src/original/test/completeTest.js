@@ -69,7 +69,7 @@ contract('eVote', async (accounts) => {
     it('Register public keys for elligable users except the last one', async() => {
         for(let i =0; i< data.length -1; i++) {
             _merkleProof = usersMerkleTree.getHexProof(accounts[i+1])                      
-            tx = await eVoteInstance.register(data[i].publicKey, data[i].publicKeyProof.a, data[i].publicKeyProof.b, data[i].publicKeyProof.c, _merkleProof, {from:accounts[i+1], value:web3.utils.toWei("1","ether")})
+            tx = await eVoteInstance.register(data[i].publicKey, data[i].publicKeyProof.a, data[i].publicKeyProof.b, data[i].publicKeyProof.c, _merkleProof, {from:accounts[i+1], value:web3.utils.toWei("0.001","ether")})
             gasUsedRegister.push(tx.receipt.gasUsed.toString())
         }         
     }).timeout(50000 * nVoters);
@@ -79,7 +79,7 @@ contract('eVote', async (accounts) => {
         snapshotId = snapShot['result']
         _merkleProof = usersMerkleTree.getHexProof(accounts[accounts.length-2])            
         try{
-            await eVoteInstance.register(data[0].publicKey, data[0].publicKeyProof.a, data[0].publicKeyProof.b, data[0].publicKeyProof.c, _merkleProof, {from:accounts[accounts.length-1], value:web3.utils.toWei("1","ether")})
+            await eVoteInstance.register(data[0].publicKey, data[0].publicKeyProof.a, data[0].publicKeyProof.b, data[0].publicKeyProof.c, _merkleProof, {from:accounts[accounts.length-1], value:web3.utils.toWei("0.001","ether")})
         } catch(err) {
            assert(String(err).includes("Invalid Merkle proof"), "error in verifying invalid user")
         }
@@ -91,7 +91,7 @@ contract('eVote', async (accounts) => {
         snapshotId = snapShot['result']
         _merkleProof = usersMerkleTree.getHexProof(accounts[1])        
         try{
-            await eVoteInstance.register(data[0].publicKey, data[0].publicKeyProof.a, data[0].publicKeyProof.b, data[0].publicKeyProof.c, _merkleProof, {from:accounts[1], value:web3.utils.toWei("1","ether")})
+            await eVoteInstance.register(data[0].publicKey, data[0].publicKeyProof.a, data[0].publicKeyProof.b, data[0].publicKeyProof.c, _merkleProof, {from:accounts[1], value:web3.utils.toWei("0.001","ether")})
         } catch(err) {
             assert(String(err).includes("Invalid DL proof"), "error in verifying invalid user")
         }
@@ -101,7 +101,7 @@ contract('eVote', async (accounts) => {
     it('Register public key of the last voter', async() => {
         i = data.length -1
         _merkleProof = usersMerkleTree.getHexProof(accounts[i+1])                      
-        tx = await eVoteInstance.register(data[i].publicKey, data[i].publicKeyProof.a, data[i].publicKeyProof.b, data[i].publicKeyProof.c, _merkleProof, {from:accounts[i+1], value:web3.utils.toWei("1","ether")})
+        tx = await eVoteInstance.register(data[i].publicKey, data[i].publicKeyProof.a, data[i].publicKeyProof.b, data[i].publicKeyProof.c, _merkleProof, {from:accounts[i+1], value:web3.utils.toWei("0.001","ether")})
         gasUsedRegister.push(tx.receipt.gasUsed.toString())
         log+=`Register: ${gasUsedRegister[0].toString()}\n`         
     }).timeout(50000 * nVoters);
@@ -111,7 +111,7 @@ contract('eVote', async (accounts) => {
         snapshotId = snapShot['result']
         _merkleProof = usersMerkleTree.getHexProof(accounts[accounts.length-2])            
         try{
-            await eVoteInstance.register(data[0].publicKey, data[0].publicKeyProof.a, data[0].publicKeyProof.b, data[0].publicKeyProof.c, _merkleProof, {from:accounts[accounts.length-1], value:web3.utils.toWei("1","ether")})
+            await eVoteInstance.register(data[0].publicKey, data[0].publicKeyProof.a, data[0].publicKeyProof.b, data[0].publicKeyProof.c, _merkleProof, {from:accounts[accounts.length-1], value:web3.utils.toWei("0.001","ether")})
         } catch(err) {
            assert(String(err).includes("Max number of voters is reached"), "error in verifying max number of voters")
         }

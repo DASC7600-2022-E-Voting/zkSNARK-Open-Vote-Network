@@ -132,6 +132,7 @@ dist
 build
 circuits
 contracts
-helper
+helper/administrator.js
+helper/voters.js
 migrations
 test

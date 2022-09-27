@@ -174,25 +174,21 @@ template encryptedVoteGen(n, numberOfOptions, encodingSize){
     xYi[0] <== Multiplier.out[0];
     xYi[1] <== Multiplier.out[1];
 
-    // Calcaulate the encrpyed vote(c)
-    // if vi = 0 => c = xYi + the neutral element (O)
-    // of vi = 1 => c = xYi + BASE8
-    component Multiplexer = MultiMux1(2);
+    // Calculate Vi * G
+    component Multiplier2 = scalarMulPoint();
     var BASE8[2] = [
         5299619240641551281634865583518297030282874472190772894086521144482721001553,
         16950150798460657717958625567821834550301663161624707787222815936182638968203
     ];
-    Multiplexer.c[0][0] <== 0;
-    Multiplexer.c[1][0] <== 1;
-    Multiplexer.c[0][1] <== BASE8[0];
-    Multiplexer.c[1][1] <== BASE8[1];
-    Multiplexer.s <== vote;
-    
+    Multiplier2.e <== vote;
+    Multiplier2.p[0] <== BASE8[0];
+    Multiplier2.p[1] <== BASE8[1];
+
     component Adder2 = BabyAdd();
     Adder2.x1 <== xYi[0];
     Adder2.y1 <== xYi[1];
-    Adder2.x2 <== Multiplexer.out[0];
-    Adder2.y2 <== Multiplexer.out[1];
+    Adder2.x2 <== Multiplier2.out[0];
+    Adder2.y2 <== Multiplier2.out[1];
 
     encryptedVote[0] <== Adder2.xout;
     encryptedVote[1] <== Adder2.yout;

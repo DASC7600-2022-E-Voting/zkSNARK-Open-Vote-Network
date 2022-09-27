@@ -33,45 +33,46 @@ async function genEncryptedVote(inputs) {
     return {genWitnessTime, genProofTime, proof, publicSignals}
 }
 
-
-async function genPublicKeysAndProofs(count) {
+async function genPublicKeyAndProof(random, vote){
+    // single voter. To be exposed to UI
     const babyJub = await buildBabyjub();
     const p = babyJub.p;
     const F = babyJub.F;
     const BASE8 = babyJub.Base8;
     const q = babyJub.subOrder;
     const pm1d2 = babyJub.pm1d2;
-    
-    getPrivate = (x) => {
-        let pk = babyJub.mulPointEscalar(BASE8, x);
-        if (Scalar.gt(F.toObject(pk[0]), pm1d2)) {
-            return (Scalar.sub(q, x)).toString()
-        }
-        return x.toString();
-    }
-    
 
+    let pk = babyJub.mulPointEscalar(BASE8, random);
+    let privateKey = Scalar.gt(F.toObject(pk[0]), pm1d2) ? (Scalar.sub(q, random)).toString() : random.toString();
+
+    var { proof, publicSignals } = await genPublicKey(privateKey);
+    const publicKeyProof = {
+        a: [proof.pi_a[0], proof.pi_a[1]],
+        b: [
+            [proof.pi_b[0][1], proof.pi_b[0][0]],
+            [proof.pi_b[1][1], proof.pi_b[1][0]],
+          ],
+        c: [proof.pi_c[0], proof.pi_c[1]]
+    }
+
+    return {
+        "privateKey": privateKey,
+        "publicKey" : publicSignals,
+        "Vote": vote,
+        "publicKeyProof": publicKeyProof
+    }
+}
+
+async function genPublicKeysAndProofs(count) {
     result = [];
     for (i=0; i<count ;i++){
-        let privateKey = getPrivate(Math.floor((Math.random()*10000)));
-        var { proof, publicSignals } = await genPublicKey(privateKey);
-        const publicKeyProof = {
-            a: [proof.pi_a[0], proof.pi_a[1]],
-            b: [
-                [proof.pi_b[0][1], proof.pi_b[0][0]],
-                [proof.pi_b[1][1], proof.pi_b[1][0]],
-              ],
-            c: [proof.pi_c[0], proof.pi_c[1]]
-        }
+        let vote = Math.floor((Math.random()*10)) % 2
+        let res = await genPublicKeyAndProof(Math.floor(Math.random()*10000), vote)
 
-        
         result.push({
+            ...res,
             "Idx": i,
-            "privateKey": privateKey,
-            "publicKey" : publicSignals,
-            "Vote": Math.floor((Math.random()*10)) % 2,
             "encryptedVote": null,
-            "publicKeyProof": publicKeyProof,
             "encryptedVoteProof": null
         })      
     }

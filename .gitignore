@@ -129,10 +129,10 @@ dist
 .yarn/install-state.gz
 .pnp.*
 
-build
-circuits
-contracts
-helper/administrator.js
-helper/voters.js
-migrations
-test
+/build
+/circuits
+/contracts
+/helper/administrator.js
+/helper/voters.js
+/migrations
+/test

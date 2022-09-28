@@ -23,7 +23,7 @@ template encryptedVotesSum(n){
 
 
 
-template exhaustiveSearch(n){
+template exhaustiveSearch(n, max){
     signal input in[2];
     signal output res;
     var checkpoint[2] = [0,1];
@@ -32,9 +32,9 @@ template exhaustiveSearch(n){
         16950150798460657717958625567821834550301663161624707787222815936182638968203
     ];
     
-    component ecCheck[n+1];
+    component ecCheck[max+1];
     var sum = 0;
-    for (var i=0; i<= n; i++){
+    for (var i=0; i<= max; i++){
         ecCheck[i] = ecIsEqual();
         ecCheck[i].in1[0] <== in[0];
         ecCheck[i].in1[1] <== in[1];
@@ -97,7 +97,7 @@ template sign2Num(n){
 
 }
 
-template tallying(n){
+template tallying(n, numberOfOptions, encodingSize){
 
     signal input encryptedVotesX[n];
     signal input encryptedVotesY[n];
@@ -138,7 +138,7 @@ template tallying(n){
     ecryptedResult[1] <== encTally.encResults[1];
 
     //exhaustive search
-    component exhaustiveSearch = exhaustiveSearch(n);
+    component exhaustiveSearch = exhaustiveSearch(n, encodingSize ** numberOfOptions);
     exhaustiveSearch.in[0] <== ecryptedResult[0];
     exhaustiveSearch.in[1] <== ecryptedResult[1];
     result <== exhaustiveSearch.res;
@@ -148,4 +148,4 @@ template tallying(n){
 
 
 
-component main{public [encryptedVotesY]} = tallying(__NVOTERS__);
+component main{public [encryptedVotesY]} = tallying(__NVOTERS__, __NOPTION__, __ENCODINGSIZE__);

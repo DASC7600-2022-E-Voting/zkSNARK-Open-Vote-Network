@@ -184,6 +184,8 @@ encryptedVoteGenStatistics=$(circuitCompileGenKey "encryptedVoteGen" "verifier_E
 
 
 sed -i "s/__NVOTERS__/$nVoters/g" ../circuits/administrator/tallying.circom
+sed -i "s/__NOPTION__/$nVotingOptions/g" ../circuits/administrator/tallying.circom
+sed -i "s/__ENCODINGSIZE__/$encodingSize/g" ../circuits/administrator/tallying.circom
 tallyingStatistics=$(circuitCompileGenKey "tallying" "verifier_tallying" "administrator")
 
 

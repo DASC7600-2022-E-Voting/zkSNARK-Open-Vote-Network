@@ -196,6 +196,7 @@ cp -r $srcDir/helper/* ../helper/
 
 #print statistics
 printStatistics "PublicKeyGen" "$PublicKeyGenStatistics"
+### Jason code
 printStatistics "encryptedVoteGen" "$encryptedVoteGenStatistics"
 printStatistics "tallying" "$tallyingStatistics"
 

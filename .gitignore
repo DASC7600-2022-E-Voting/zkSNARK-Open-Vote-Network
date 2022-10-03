@@ -130,6 +130,7 @@ dist
 .pnp.*
 
 build
+!build/setup.sh
 circuits
 contracts
 helper/administrator.js

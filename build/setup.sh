@@ -74,6 +74,17 @@ function printStatistics(){
    """  >&2
 }
 
+# function to append statistics to ./log/setup_log.csv
+function appendSetupLogData(){
+   build_date="$1"
+   nVoters="$2"
+   desgin="$3"
+   citcuitName="$4"
+   statistics=($5)
+
+   echo """$build_date, $nVoters, $design, $citcuitName, ${statistics[0]}, ${statistics[1]}, ${statistics[2]}, ${statistics[3]}""" >> ../log/setup_log.csv
+}
+
 # Main()
 
 useMessage="Useage: ./setup.sh -d ${GREEN}[original|sha256|progressiveSha256|progressivePoseidon]${NC} -n ${GREEN}[NUMBER_of_VOTERS]${NC}"
@@ -196,11 +207,14 @@ cp -r $srcDir/helper/* ../helper/
 
 #print statistics
 printStatistics "PublicKeyGen" "$PublicKeyGenStatistics"
-### Jason code
 printStatistics "encryptedVoteGen" "$encryptedVoteGenStatistics"
 printStatistics "tallying" "$tallyingStatistics"
 
-
+#save statistics as csv
+setup_datetime=$(date +'%Y%m%d%H%M%S')
+appendSetupLogData "$setup_datetime" "$nVoters" "$design" "PublicKeyGen" "$PublicKeyGenStatistics"
+appendSetupLogData "$setup_datetime" "$nVoters" "$design" "encryptedVoteGen" "$encryptedVoteGenStatistics"
+appendSetupLogData "$setup_datetime" "$nVoters" "$design" "tallying" "$tallyingStatistics"
 
 # print how to run test
 echo """

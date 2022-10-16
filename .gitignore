@@ -137,4 +137,4 @@ helper/administrator.js
 helper/voters.js
 migrations
 log
-test
+/test

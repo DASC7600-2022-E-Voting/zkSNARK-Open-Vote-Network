@@ -21,6 +21,9 @@ contract('eVote', async (accounts) => {
     let _tallyingResult;
     let _tallyingProof;
     let nVoters = __NVOTERS__
+    let family = '__FAMILY__'
+    // let param = __PARAM__
+    let param = 0.5
     let gasUsedRegister = []
     let gasUsedCast = []
 
@@ -28,14 +31,14 @@ contract('eVote', async (accounts) => {
     var jsonRecord = {
         start_time: new Date(),
         n_voters: nVoters,
-        vote_gen_family: "",  // TODO
-        params: [],  // TODO
+        vote_gen_family: family,
+        params: [param],
         steps: []
     }
 
     it('Generate Testing Data', async ()=> {
         var t_begin = new Date().getTime()
-        data = await genTestData(nVoters)
+        data = await genTestData(nVoters, family, [param])
         let encryptedVotes = [];
         let expectedTallyingResult = 0;    
         for (i=0; i<data.length;i++){

@@ -87,10 +87,10 @@ function appendSetupLogData(){
 
 # Main()
 
-useMessage="Useage: ./setup.sh -d ${GREEN}[original|sha256|progressiveSha256|progressivePoseidon]${NC} -n ${GREEN}[NUMBER_of_VOTERS]${NC}"
+useMessage="Usage: ./setup.sh -d ${GREEN}[original|sha256|progressiveSha256|progressivePoseidon]${NC} -n ${GREEN}[NUMBER_of_VOTERS]${NC} -f ${GREEN}[independent|sequential0|sequential1]${NC}"
 
 # Parsing arguments
-while getopts "hd:n:" opt
+while getopts "hd:n:f:" opt
 do
    case "$opt" in
       d) 
@@ -108,6 +108,21 @@ do
             exit 1
          fi
       ;;
+      f)
+         familyOpt="$OPTARG";
+         possibleFamilyOpt=('independent' 'sequential0' 'sequential1');
+         if [[ ! " ${possibleFamilyOpt[*]} " =~ " ${familyOpt} " ]]; then
+            echo $useMessage;
+            exit 1
+         fi
+      ;;
+      # p)
+      #    paramOpt="$OPTARG";
+      #    if [[ $paramOpt -le "0"] || [$paramOpt -ge "1" ]]; then
+      #       echo $useMessage;
+      #       exit 1
+      #    fi
+      # ;;
       h) 
          echo $useMessage;
          exit 0
@@ -125,6 +140,8 @@ done
 
 design="${designOpt:-original}"
 nVoters="${nVotersOpt:-3}"
+family="${familyOpt:-independent}"
+param="${paramOpt:-0.5}"
 srcDir=../src/"$design"
 snarkjs=../node_modules/.bin/snarkjs
 
@@ -201,6 +218,8 @@ echo "${GREEN}Modifying contracts completed${NC}"
 
 cp -r $srcDir/test/* ../test/
 sed -i "s/__NVOTERS__/$nVoters/g" ../test/completeTest.js
+sed -i "s/__FAMILY__/$family/g" ../test/completeTest.js
+# sed -i "s/__PARAM__/$param/g" ../test/completeTest.js
 cp -r $srcDir/migrations/* ../migrations/
 cp -r $srcDir/helper/* ../helper/
 

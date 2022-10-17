@@ -1,6 +1,7 @@
 const { FullProve } = require('./snarkjsHelper')
 const buildBabyjub = require("circomlibjs").buildBabyjub;
 const { Scalar }  =  require("ffjavascript");
+const { testVotesGen } = require('./voteGen')
 
 const PublicKeyGen_wasm = "../build/PublicKeyGen_js/PublicKeyGen.wasm";
 const PublicKeyGen_zkey = "../build/PublicKeyGenFinal.zkey";
@@ -34,7 +35,7 @@ async function genEncryptedVote(inputs) {
 }
 
 
-async function genPublicKeysAndProofs(count) {
+async function genPublicKeysAndProofs(count, family, params) {
     const babyJub = await buildBabyjub();
     const p = babyJub.p;
     const F = babyJub.F;
@@ -49,50 +50,9 @@ async function genPublicKeysAndProofs(count) {
         }
         return x.toString();
     }
-    // generate vote sequence, for binary case for now
-    // can choose "random", "allOne", "allZero", "oneThenZero", "zeroThenOne" for now
-    votePattern = "random"
 
-
-    voteSequence = []
-    if (votePattern == "random"){
-        for (i=0; i<count ; i++){
-            voteSequence.push(
-                Math.floor((Math.random()*10)) % 2
-            )        
-        }
-    }
-    if (votePattern == "allOne"){
-        for (i=0; i<count ; i++){
-            voteSequence.push(1)       
-        }
-    }
-
-    if (votePattern == "allZero"){
-        for (i=0; i<count ; i++){
-            voteSequence.push(0)        
-        }
-    }
-
-    if (votePattern == "oneThenZero"){
-        for (i=0; i<count ; i++){
-            if (i < count/2){
-                voteSequence.push(0)
-            } else {
-                voteSequence.push(1)
-            }                
-        }
-    }
-
-    if (votePattern == "zeroThenOne"){
-        for (i=0; i<count ; i++){
-            if (i < count/2){
-                voteSequence.push(0)
-            } else {
-                voteSequence.push(1)
-            }                
-        }
-    }
+    // generate binary vote sequence
+    voteSequence = testVotesGen(count, family, params)
 
     result = [];
     for (i=0; i<count ;i++){
@@ -156,8 +116,8 @@ async function genEncryptedVotesAndProofs(voters){
 
 }
 
-async function genTestData(length) {
-    const res = await genPublicKeysAndProofs(length);
+async function genTestData(length, family, params) {
+    const res = await genPublicKeysAndProofs(length, family, params);
     await genEncryptedVotesAndProofs(res);
     return res;
 }

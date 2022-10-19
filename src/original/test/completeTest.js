@@ -21,8 +21,7 @@ contract('eVote', async (accounts) => {
     let _tallyingResult;
     let _tallyingProof;
     let nVoters = __NVOTERS__
-    let family = '__FAMILY__'
-    // let param = __PARAM__
+    let family = 'independent'
     let param = 0.5
     let gasUsedRegister = []
     let gasUsedCast = []

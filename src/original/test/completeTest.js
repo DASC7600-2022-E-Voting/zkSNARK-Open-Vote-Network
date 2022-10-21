@@ -10,7 +10,15 @@ const { genTestData } = require('../helper/voters.js')
 const { tallying } = require('../helper/administrator.js')
 const {mineToBlockNumber, takeSnapshot,revertToSnapshot} = require('../helper/truffleHelper.js');
 const { getVerificationKeys } = require('../helper/verificationKeys.js');
+const fs = require('fs')
 
+var testCases = {cases: [{family: 'independent', params: [0.5], numRuns: 1}]}
+if(fs.existsSync('./testCases.json')){
+    testCases = require('./testCases.json')
+}
+
+testCases.cases.forEach(testCase => {
+    for(let i = 0; i < testCase.numRuns; i++){
 contract('eVote', async (accounts) => {
     let admin = accounts[0]
     log = 'Gas Cost\n'
@@ -21,8 +29,8 @@ contract('eVote', async (accounts) => {
     let _tallyingResult;
     let _tallyingProof;
     let nVoters = __NVOTERS__
-    let family = 'independent'
-    let param = 0.5
+    let family = testCase.family
+    let params = testCase.params
     let gasUsedRegister = []
     let gasUsedCast = []
 
@@ -31,13 +39,13 @@ contract('eVote', async (accounts) => {
         start_time: new Date(),
         n_voters: nVoters,
         vote_gen_family: family,
-        params: [param],
+        params: params,
         steps: []
     }
 
     it('Generate Testing Data', async ()=> {
         var t_begin = new Date().getTime()
-        data = await genTestData(nVoters, family, [param])
+        data = await genTestData(nVoters, family, params)
         let encryptedVotes = [];
         let expectedTallyingResult = 0;    
         for (i=0; i<data.length;i++){
@@ -48,11 +56,10 @@ contract('eVote', async (accounts) => {
 
         const assertion = (expectedTallyingResult == tallyingResult)
         const errMsg = "Error: Tallying Result provided by the Tallying circuit is not equal to the expected Tallying result"
-        assert(assertion, errMsg)
-
+        
         _tallyingProof = tallyingProof
         _tallyingResult = tallyingResult
-
+        
         usersMerkleTree = new MerkleTree(accounts.slice(1,accounts.length-1)) ;
         
         var t_end = new Date().getTime();
@@ -63,6 +70,7 @@ contract('eVote', async (accounts) => {
             status_ok: assertion,
             message: assertion ? null : errMsg,
         })
+        assert(assertion, errMsg)
     }).timeout(90e6);
     
     it('Deploy the contracts', async ()=> {
@@ -163,8 +171,7 @@ contract('eVote', async (accounts) => {
         const assertion = caughtErrStr.includes("Invalid Merkle proof")
         const errMsg = "error in verifying invalid user"
         await revertToSnapshot(snapshotId) 
-        assert(assertion, errMsg)
-
+        
         var t_end = new Date().getTime();
         jsonRecord.steps.push({
             name: "Throw an error if non-elligable user tries to vote",
@@ -173,6 +180,7 @@ contract('eVote', async (accounts) => {
             status_ok: assertion,
             message: assertion ? null : errMsg,
         })
+        assert(assertion, errMsg)
     })
 
     it('Throw an error if elligable user provides invalid DL proof to vote', async() =>{
@@ -189,8 +197,7 @@ contract('eVote', async (accounts) => {
         const assertion = caughtErrStr.includes("Invalid DL proof")
         const errMsg = "error in verifying invalid user"
         await revertToSnapshot(snapshotId)
-        assert(assertion, errMsg)
-
+        
         var t_end = new Date().getTime();
         jsonRecord.steps.push({
             name: "Throw an error if elligable user provides invalid DL proof to vote",
@@ -199,6 +206,7 @@ contract('eVote', async (accounts) => {
             status_ok: assertion,
             message: assertion ? null : errMsg,
         })
+        assert(assertion, errMsg)
     })
 
     it('Register public key of the last voter', async() => {
@@ -234,8 +242,7 @@ contract('eVote', async (accounts) => {
         const assertion = caughtErrStr.includes("Max number of voters is reached")
         const errMsg = "error in verifying max number of voters"
         await revertToSnapshot(snapshotId)
-        assert(assertion, errMsg)
-
+        
         var t_end = new Date().getTime();
         jsonRecord.steps.push({
             name: "Throw an error if an user tries to register but Max number of voters is reached",
@@ -244,6 +251,7 @@ contract('eVote', async (accounts) => {
             status_ok: assertion,
             message: assertion ? null : errMsg,
         })
+        assert(assertion, errMsg)
     })
 
 
@@ -284,7 +292,6 @@ contract('eVote', async (accounts) => {
         }
         const assertion = caughtErrStr.includes("Invalid encrypted vote")
         const errMsg = "error in verifying invalid encrypted"
-        assert(assertion, errMsg)
         
         var t_end = new Date().getTime();
         jsonRecord.steps.push({
@@ -294,6 +301,7 @@ contract('eVote', async (accounts) => {
             status_ok: assertion,
             message: assertion ? null : errMsg,
         })
+        assert(assertion, errMsg)
     })
 
     it('Malicious Administrator', async() => {
@@ -312,8 +320,7 @@ contract('eVote', async (accounts) => {
         const assertion = caughtErrStr.includes("Invalid Tallying Result")
         const errMsg = "error in verifying Malicious Administrator"
         await revertToSnapshot(snapshotId)
-        assert(assertion, errMsg)
-
+        
         var t_end = new Date().getTime();
         jsonRecord.steps.push({
             name: "Malicious Administrator",
@@ -322,6 +329,7 @@ contract('eVote', async (accounts) => {
             status_ok: assertion,
             message: assertion ? null : errMsg,
         })
+        assert(assertion, errMsg)
     })
 
     it('Honest Administrator', async() => {
@@ -352,10 +360,9 @@ contract('eVote', async (accounts) => {
             } catch(err) {caughtErrStr += String(err) + '; '}
         }
         const assertion = (caughtErrStr == "")
-        assert(assertion, caughtErrStr)
-
+        
         log+=`Refund: ${tx.receipt.gasUsed.toString()}\n`
-
+        
         var t_end = new Date().getTime();
         jsonRecord.steps.push({
             name: "Refund deposits for all",
@@ -365,11 +372,12 @@ contract('eVote', async (accounts) => {
             message: assertion ? null : caughtErrStr,
             cost: tx.receipt.gasUsed
         })
+        assert(assertion, caughtErrStr)
     }).timeout(50000 * nVoters);
     
     it('Saving logs', async () => {
         console.log(log)
-        var fs = require("fs");
-        fs.appendFileSync("../log/test_log.jsonl", JSON.stringify(jsonRecord) + '\n');
+        fs.appendFileSync("../log/test_log.jsonl", JSON.stringify(jsonRecord) + '\r\n');
     })
 })
+}})

@@ -1,9 +1,11 @@
 var fs = require('fs')
 var { parse } = require('csv-parse')
-const { spawnSync, spawn } = require("child_process")
+const { spawnSync, spawn } = require('child_process')
 
 const inputFile = './testCasesAll.csv'
+const testCasesFp = '../test/testCases.json'
 var setups = []
+
 fs.createReadStream(inputFile)
   .pipe(parse({delimiter: ','}))
   .on('data', function(csvrow) {
@@ -44,7 +46,7 @@ fs.createReadStream(inputFile)
         '=================\n'
       )
 
-      fs.writeFileSync('../test/testCases.json', JSON.stringify(setup, null, 2))
+      fs.writeFileSync(testCasesFp, JSON.stringify(setup, null, 2))
 
       const voterPlus2 = String(Number(setup.nVoters) + 2)
       const ganacheChild = spawn('ganache-cli', ['-l', '30e6', '-a', voterPlus2], {
@@ -57,9 +59,11 @@ fs.createReadStream(inputFile)
       })
 
       ganacheChild.kill()
-      fs.unlinkSync('../test/testCases.json')
-    })
 
+      if(fs.existsSync(testCasesFp)){
+        fs.unlinkSync(testCasesFp)
+      }
+    })
     console.log(
       '=================\n',
       `Finished batch run\n`,

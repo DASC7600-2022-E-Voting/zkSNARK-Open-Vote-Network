@@ -183,7 +183,7 @@ contract('eVote', async (accounts) => {
         assert(assertion, errMsg)
     })
 
-    it('Throw an error if elligable user provides invalid DL proof to vote', async() =>{
+    it('Throw an error if sender already registered', async() =>{
         var t_begin = new Date().getTime()
         snapShot = await takeSnapshot()
         snapshotId = snapShot['result']
@@ -194,13 +194,13 @@ contract('eVote', async (accounts) => {
         } catch(err) {
             caughtErrStr = String(err)
         }
-        const assertion = caughtErrStr.includes("Invalid DL proof")
-        const errMsg = "error in verifying invalid user"
+        const assertion = caughtErrStr.includes("sender already registered")
+        const errMsg = "error in rejecting already registered sender"
         await revertToSnapshot(snapshotId)
         
         var t_end = new Date().getTime();
         jsonRecord.steps.push({
-            name: "Throw an error if elligable user provides invalid DL proof to vote",
+            name: "Throw an error if sender already registered",
             start_time: t_begin,
             duration: t_end - t_begin,
             status_ok: assertion,

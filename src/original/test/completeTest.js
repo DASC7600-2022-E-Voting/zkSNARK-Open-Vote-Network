@@ -95,7 +95,7 @@ contract('eVote', async (accounts) => {
             await eVoteInstance.register(data[0].publicKey, data[0].publicKeyProof.a, data[0].publicKeyProof.b, data[0].publicKeyProof.c, _merkleProof, {from:accounts[1], value:web3.utils.toWei("0.001","ether")})
             assert(false, 'did not throw error')
         } catch(err) {
-            assert(String(err).includes("Invalid DL proof"), "error in verifying invalid user")
+            assert(String(err).includes("Sender is already registered"), "error in verifying invalid user")
         }
         await revertToSnapshot(snapshotId)
     })

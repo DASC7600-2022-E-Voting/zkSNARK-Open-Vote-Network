@@ -52,6 +52,7 @@ contract eVote {
         require(block.number<finishRegistartionBlockNumber,"Registration phase is already closed");
         require(vMerkleProof.verifyProof(_merkleProof, usersMerkleTreeRoot, keccak256(abi.encodePacked(msg.sender))), "Invalid Merkle proof");
         require(vzkSNARK.verifyProof(proof_a, proof_b, proof_c, _pubKey, 0),"Invalid DL proof");
+        require(publicKeys[msg.sender][0] == 0 && publicKeys[msg.sender][1] == 0, "sender already registered");
         voters.push(msg.sender);
         publicKeys[msg.sender] = [_pubKey[0], _pubKey[1]];
     }

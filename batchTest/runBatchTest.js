@@ -6,6 +6,10 @@ const inputFile = './testCasesAll.csv'
 const testCasesFp = '../test/testCases.json'
 var setups = []
 
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 fs.createReadStream(inputFile)
   .pipe(parse({delimiter: ','}))
   .on('data', function(csvrow) {
@@ -26,7 +30,8 @@ fs.createReadStream(inputFile)
     })
   })
   .on('end', async function() {
-    setups.forEach((setup, setupNum) => {
+    for(let setupNum = 0; setupNum < setups.length; setupNum++){
+      const setup = setups[setupNum]
       console.log(
         '=================\n',
         `Setup Number: ${setupNum + 1}\n`,
@@ -52,6 +57,8 @@ fs.createReadStream(inputFile)
       const ganacheChild = spawn('ganache-cli', ['-l', '30e6', '-a', voterPlus2], {
         cwd: '../build'
       })
+      
+      await sleep(5000)
 
       spawnSync('truffle', ['test'], {
         stdio: 'inherit',
@@ -63,7 +70,7 @@ fs.createReadStream(inputFile)
       if(fs.existsSync(testCasesFp)){
         fs.unlinkSync(testCasesFp)
       }
-    })
+    }
     console.log(
       '=================\n',
       `Finished batch run\n`,

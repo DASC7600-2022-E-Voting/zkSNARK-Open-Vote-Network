@@ -55,7 +55,7 @@ contract('eVote', async (accounts) => {
         const { tallyingProof, tallyingResult } = await tallying(encryptedVotes)
 
         const assertion = (expectedTallyingResult == tallyingResult)
-        const errMsg = "Error: Tallying Result provided by the Tallying circuit is not equal to the expected Tallying result"
+        const errMsg = `Error: Tallying Result provided by the Tallying circuit is not equal to the expected Tallying result ${expectedTallyingResult} !== ${tallyingResult}`
         
         _tallyingProof = tallyingProof
         _tallyingResult = tallyingResult
@@ -68,7 +68,7 @@ contract('eVote', async (accounts) => {
             start_time: t_begin,
             duration: t_end - t_begin,
             status_ok: assertion,
-            message: assertion ? null : errMsg,
+            message: assertion ? tallyingResult : errMsg,
         })
         assert(assertion, errMsg)
     }).timeout(90e6);

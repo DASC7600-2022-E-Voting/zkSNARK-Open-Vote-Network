@@ -45,3 +45,4 @@ Install docker, then build and run thedev  env with docker-compose
   - 4th field: the parameter p
 - Run `cd batchTest`, then `node runBatchTest.js`.
 - Results are saved at the [log](./log) folder.
+- Accessing the exact tally count of each run: The tally count is stored in the messsage of the first step of each run.

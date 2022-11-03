@@ -12,14 +12,13 @@ const {mineToBlockNumber, takeSnapshot,revertToSnapshot} = require('../helper/tr
 const { getVerificationKeys } = require('../helper/verificationKeys.js');
 const fs = require('fs')
 
-var testCases = {cases: [{family: 'independent', params: [0.5], numRuns: 1}]}
+var testCases = {cases: [{family: 'independent', params: [0.5]}]}
 if(fs.existsSync('./testCases.json')){
     testCases = require('./testCases.json')
 }
 
 for(let testCaseNum = 0; testCaseNum < testCases.cases.length; testCaseNum++){
     const testCase = testCases.cases[testCaseNum]
-    for(let i = 0; i < testCase.numRuns; i++){
 contract('eVote', async (accounts) => {
     let admin = accounts[0]
     let log = 'Gas Cost\n'
@@ -381,4 +380,4 @@ contract('eVote', async (accounts) => {
         fs.appendFileSync("../log/test_log.jsonl", JSON.stringify(jsonRecord) + '\r\n');
     })
 })
-}}
+}

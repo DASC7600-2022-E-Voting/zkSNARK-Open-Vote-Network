@@ -44,31 +44,43 @@ fs.createReadStream(inputFile)
         cwd: '../build'
       })
 
-      console.log(
-        '=================\n',
-        `Setup Number: ${setupNum + 1}\n`,
-        'Start testing\n',
-        '=================\n'
-      )
+      for (let i = 0; i < setup.cases.length; i++) {
+        for (let j = 0; j < setup.cases[i].numRuns; j++) {
+          const setupSingleCase = {
+            nVoters: setup.nVoters,
+            cases: [{
+              family: setup.cases[i].family,
+              params: setup.cases[i].params
+            }]
+          }
+          console.log(
+            '=================\n',
+            `nVoters: ${setupSingleCase.nVoters}. Case: ${JSON.stringify(setupSingleCase.cases[0])} .NumRun: ${j + 1}\n`,
+            '=================\n'
+          )
 
-      fs.writeFileSync(testCasesFp, JSON.stringify(setup, null, 2))
+          fs.writeFileSync(testCasesFp, JSON.stringify(setupSingleCase, null, 2))
+          
+          const voterPlus2 = String(Number(setup.nVoters) + 2)
+          const ganacheChild = spawn('ganache-cli', ['-l', '30e6', '-a', voterPlus2], {
+            cwd: '../build'
+          })
+          
+          await sleep(5000)
+          
+          spawnSync('truffle', ['test'], {
+            stdio: 'inherit',
+            cwd: '../test'
+          })
+          
+          ganacheChild.kill()
+          
+          if(fs.existsSync(testCasesFp)){
+            fs.unlinkSync(testCasesFp)
+          }
 
-      const voterPlus2 = String(Number(setup.nVoters) + 2)
-      const ganacheChild = spawn('ganache-cli', ['-l', '30e6', '-a', voterPlus2], {
-        cwd: '../build'
-      })
-      
-      await sleep(5000)
-
-      spawnSync('truffle', ['test'], {
-        stdio: 'inherit',
-        cwd: '../test'
-      })
-
-      ganacheChild.kill()
-
-      if(fs.existsSync(testCasesFp)){
-        fs.unlinkSync(testCasesFp)
+          await sleep(1000)
+        }
       }
     }
     console.log(

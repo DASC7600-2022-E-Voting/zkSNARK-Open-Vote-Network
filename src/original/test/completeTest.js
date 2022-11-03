@@ -22,7 +22,7 @@ for(let testCaseNum = 0; testCaseNum < testCases.cases.length; testCaseNum++){
     for(let i = 0; i < testCase.numRuns; i++){
 contract('eVote', async (accounts) => {
     let admin = accounts[0]
-    log = 'Gas Cost\n'
+    let log = 'Gas Cost\n'
     let eVoteInstance
     let verifierZKSNARKInstance;
     let data;

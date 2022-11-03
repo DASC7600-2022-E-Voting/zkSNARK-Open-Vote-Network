@@ -18,6 +18,20 @@ const testVotesGen = (nVoters, family='independent', params=[0.5]) => {
     return Array(oneCount).fill(1).concat(
       Array(zeroCount).fill(0)
     )
+  } else if (family === 'permutation'){  // constant proportion of 0s and 1s, but varying order
+    const proportion0 = params[0]
+    const zeroCount = Math.round(nVoters * proportion0)
+    const oneCount = nVoters - zeroCount
+    let arr = Array(zeroCount).fill(0).concat(
+      Array(oneCount).fill(1)
+    )
+    let outArr = []
+    while(arr.length) {
+      var index = Math.floor(Math.random() * arr.length)
+      outArr.push(arr[index])
+      arr.splice(index, 1)
+    }
+    return outArr
   }
 }
 module.exports = {

@@ -1,6 +1,7 @@
 const { FullProve } = require('./snarkjsHelper')
 const buildBabyjub = require("circomlibjs").buildBabyjub;
 const { Scalar }  =  require("ffjavascript");
+const { testVotesGen } = require('./voteGen')
 
 const PublicKeyGen_wasm = "../build/PublicKeyGen_js/PublicKeyGen.wasm";
 const PublicKeyGen_zkey = "../build/PublicKeyGenFinal.zkey";
@@ -34,7 +35,7 @@ async function genEncryptedVote(inputs) {
 }
 
 
-async function genPublicKeysAndProofs(count, nOptions, encodingSize) {
+async function genPublicKeysAndProofs(count, nOptions, encodingSize, family, params) {
     const babyJub = await buildBabyjub();
     const p = babyJub.p;
     const F = babyJub.F;
@@ -49,7 +50,9 @@ async function genPublicKeysAndProofs(count, nOptions, encodingSize) {
         }
         return x.toString();
     }
-    
+
+    // generate binary vote sequence
+    voteSequence = testVotesGen(count, family, params)
 
     result = [];
     for (i=0; i<count ;i++){
@@ -70,7 +73,7 @@ async function genPublicKeysAndProofs(count, nOptions, encodingSize) {
             "Idx": i,
             "privateKey": privateKey,
             "publicKey" : publicSignals,
-            "Vote": vote,
+            "Vote": voteSequence[i],
             "encryptedVote": null,
             "publicKeyProof": publicKeyProof,
             "encryptedVoteProof": null
@@ -114,8 +117,8 @@ async function genEncryptedVotesAndProofs(voters){
 
 }
 
-async function genTestData(length, nOptions, encodingSize) {
-    const res = await genPublicKeysAndProofs(length, nOptions, encodingSize);
+async function genTestData(length, nOptions, encodingSize, family, params) {
+    const res = await genPublicKeysAndProofs(length, nOptions, encodingSize, family, params);
     await genEncryptedVotesAndProofs(res);
     return res;
 }

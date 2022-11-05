@@ -43,7 +43,7 @@ async function genPublicKeysAndProofs(count, nOptions, encodingSize, family, par
     const q = babyJub.subOrder;
     const pm1d2 = babyJub.pm1d2;
     
-    getPrivate = (x) => {
+    const getPrivate = (x) => {
         let pk = babyJub.mulPointEscalar(BASE8, x);
         if (Scalar.gt(F.toObject(pk[0]), pm1d2)) {
             return (Scalar.sub(q, x)).toString()
@@ -54,10 +54,10 @@ async function genPublicKeysAndProofs(count, nOptions, encodingSize, family, par
     // generate binary vote sequence
     const voteSequence = testVotesGen(count, family, params)
 
-    result = [];
-    for (i=0; i<count ;i++){
-        let privateKey = getPrivate(Math.floor((Math.random()*10000)));
-        var { proof, publicSignals } = await genPublicKey(privateKey);
+    const result = [];
+    for (let i=0; i<count; i++){
+        const privateKey = getPrivate(Math.floor((Math.random()*10000)));
+        const { proof, publicSignals } = await genPublicKey(privateKey);
         const publicKeyProof = {
             a: [proof.pi_a[0], proof.pi_a[1]],
             b: [
@@ -68,7 +68,6 @@ async function genPublicKeysAndProofs(count, nOptions, encodingSize, family, par
         }
         const voteOption = Math.floor((Math.random()*nOptions*10)) % nOptions;
         const vote = encodingSize ** voteOption;
-
         result.push({
             "Idx": i,
             "privateKey": privateKey,
@@ -77,7 +76,7 @@ async function genPublicKeysAndProofs(count, nOptions, encodingSize, family, par
             "encryptedVote": null,
             "publicKeyProof": publicKeyProof,
             "encryptedVoteProof": null
-        })      
+        });
     }
     return result
 }
@@ -85,23 +84,23 @@ async function genPublicKeysAndProofs(count, nOptions, encodingSize, family, par
 async function genEncryptedVotesAndProofs(voters){
     let VotingKeysX = [];
     let VotingKeysY = [];
-    for (i=0; i<voters.length; i++){
+    for (let i=0; i<voters.length; i++){
         VotingKeysX.push(voters[i].publicKey[0])
         VotingKeysY.push(voters[i].publicKey[1])
     }
     let genWitnessTimeAll = 0;
     let genProofTimeAll = 0;
 
-    for (i=0; i<voters.length; i++){
-        inputs = { "VotingKeysX": VotingKeysX,
+    for (let i=0; i<voters.length; i++){
+        const inputs = { "VotingKeysX": VotingKeysX,
             "VotingKeysY": VotingKeysY,
             "Idx": voters[i].Idx,
             "xi": voters[i].privateKey,
             "vote": voters[i].Vote
         }
-        var {genWitnessTime, genProofTime, proof, publicSignals} = await genEncryptedVote(inputs)
+        const {genWitnessTime, genProofTime, proof, publicSignals} = await genEncryptedVote(inputs)
         genWitnessTimeAll += genWitnessTime
-        genProofTimeAll +=genProofTime 
+        genProofTimeAll += genProofTime
         voters[i].encryptedVote = [publicSignals[0], publicSignals[1]]
         const encryptedVoteProof = {
             a: [proof.pi_a[0], proof.pi_a[1]],
@@ -110,7 +109,7 @@ async function genEncryptedVotesAndProofs(voters){
                 [proof.pi_b[1][1], proof.pi_b[1][0]],
               ],
             c: [proof.pi_c[0], proof.pi_c[1]]
-        } 
+        }
         voters[i].encryptedVoteProof = encryptedVoteProof
     }
     console.log(`encryptedVoteGen_genWitnessTime = ${genWitnessTimeAll/voters.length} ms, encryptedVoteGen_genProofTime = ${genProofTimeAll/voters.length} ms`)

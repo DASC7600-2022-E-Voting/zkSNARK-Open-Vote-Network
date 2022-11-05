@@ -78,11 +78,12 @@ function printStatistics(){
 function appendSetupLogData(){
    build_date="$1"
    nVoters="$2"
-   desgin="$3"
-   citcuitName="$4"
-   statistics=($5)
+   nVotingOptions="$3"
+   desgin="$4"
+   citcuitName="$5"
+   statistics=($6)
 
-   echo """$build_date, $nVoters, $design, $citcuitName, ${statistics[0]}, ${statistics[1]}, ${statistics[2]}, ${statistics[3]}""" >> ../log/setup_log.csv
+   echo """$build_date, $nVoters, $nVotingOptions, $design, $citcuitName, ${statistics[0]}, ${statistics[1]}, ${statistics[2]}, ${statistics[3]}""" >> ../log/setup_log.csv
 }
 
 # Main()
@@ -246,9 +247,9 @@ printStatistics "tallying" "$tallyingStatistics"
 
 #save statistics as csv
 setup_datetime=$(date +'%Y%m%d%H%M%S')
-appendSetupLogData "$setup_datetime" "$nVoters" "$design" "PublicKeyGen" "$PublicKeyGenStatistics"
-appendSetupLogData "$setup_datetime" "$nVoters" "$design" "encryptedVoteGen" "$encryptedVoteGenStatistics"
-appendSetupLogData "$setup_datetime" "$nVoters" "$design" "tallying" "$tallyingStatistics"
+appendSetupLogData "$setup_datetime" "$nVoters" "$nVotingOptions" "$design" "PublicKeyGen" "$PublicKeyGenStatistics"
+appendSetupLogData "$setup_datetime" "$nVoters" "$nVotingOptions" "$design" "encryptedVoteGen" "$encryptedVoteGenStatistics"
+appendSetupLogData "$setup_datetime" "$nVoters" "$nVotingOptions" "$design" "tallying" "$tallyingStatistics"
 
 # print how to run test
 echo """

@@ -15,17 +15,19 @@ fs.createReadStream(inputFile)
   .on('data', function(csvrow) {
     // read csv setting file
     const _nVoters = csvrow[1]
-    let _setup = setups.find(s => s.nVoters === _nVoters)
+    const _nOptions = csvrow[2]
+    let _setup = setups.find(s => s.nVoters === _nVoters && s.nOptions === _nOptions)
     if(!_setup){
       _setup = {
         nVoters: _nVoters,
+        nOptions: _nOptions,
         cases: []
       }
       setups.push(_setup)
     }
     _setup.cases.push({
-      family: csvrow[2],
-      params: [Number(csvrow[3])],
+      family: csvrow[3],
+      params: [Number(csvrow[4])],
       numRuns: Number(csvrow[0])
     })
   })
@@ -39,7 +41,7 @@ fs.createReadStream(inputFile)
         '=================\n'
       )
 
-      spawnSync('./setup.sh', ['-n', setup.nVoters], {
+      spawnSync('./setup.sh', ['-n', setup.nVoters, '-o', setup.nOptions  ], {
         stdio: 'inherit',
         cwd: '../build'
       })
@@ -48,6 +50,7 @@ fs.createReadStream(inputFile)
         for (let j = 0; j < setup.cases[i].numRuns; j++) {
           const setupSingleCase = {
             nVoters: setup.nVoters,
+            nOptions: setup.nOptions,
             cases: [{
               family: setup.cases[i].family,
               params: setup.cases[i].params
@@ -55,7 +58,7 @@ fs.createReadStream(inputFile)
           }
           console.log(
             '=================\n',
-            `nVoters: ${setupSingleCase.nVoters}. Case: ${JSON.stringify(setupSingleCase.cases[0])} .NumRun: ${j + 1}\n`,
+            `nVoters: ${setupSingleCase.nVoters}. nOptions: ${setupSingleCase.nOptions}. Case: ${JSON.stringify(setupSingleCase.cases[0])} .NumRun: ${j + 1}\n`,
             '=================\n'
           )
 

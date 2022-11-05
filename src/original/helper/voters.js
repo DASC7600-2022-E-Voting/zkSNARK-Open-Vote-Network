@@ -52,7 +52,7 @@ async function genPublicKeysAndProofs(count, nOptions, encodingSize, family, par
     }
 
     // generate binary vote sequence
-    voteSequence = testVotesGen(count, family, params)
+    const voteSequence = testVotesGen(count, family, params)
 
     result = [];
     for (i=0; i<count ;i++){
@@ -73,7 +73,7 @@ async function genPublicKeysAndProofs(count, nOptions, encodingSize, family, par
             "Idx": i,
             "privateKey": privateKey,
             "publicKey" : publicSignals,
-            "Vote": voteSequence[i],
+            "Vote": nOptions > 2 ? vote : voteSequence[i],
             "encryptedVote": null,
             "publicKeyProof": publicKeyProof,
             "encryptedVoteProof": null

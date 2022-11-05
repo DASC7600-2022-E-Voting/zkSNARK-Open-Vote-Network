@@ -167,7 +167,7 @@ mkdir -p ../contracts
 mkdir -p ../test
 
 
-echo "Used Design: ${GREEN}$design${NC}, NUMBER_of_VOTERS = ${GREEN}$nVotersOpt${NC}"
+echo "Used Design: ${GREEN}$design${NC}, NUMBER_of_VOTERS = ${GREEN}$nVotersOpt${NC}, NUMBER_of_OPTIONS = ${GREEN}$nVotingOptionsOpt${NC}"
 
 # check dependencies
 if [[ ! -d "../node_modules" ]]; then

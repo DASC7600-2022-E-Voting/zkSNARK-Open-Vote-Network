@@ -38,12 +38,13 @@ Install docker, then build and run thedev  env with docker-compose
 - Setup test cases in [testCasesAll.csv](./batchTest/testCasesAll.csv)
   - 1st field: number of repetitive runs
   - 2nd field: nVoters
-  - 3rd field: Generation family: independent | sequential0 | sequential1 | permutation
+  - 3nd field: nOptions
+  - 4rd field: Generation family: independent | sequential0 | sequential1 | permutation
 	- independent: independent votings with probability p of being 0
 	- sequential0: 0 first, then 1. Proportion of 0 is p
 	- sequential1: 1 first, then 0. Proportion of 0 is p
 	- permutation: Proportion of 0 is p, random order
-  - 4th field: the parameter p
+  - 5th field: the parameter p
 - Run `cd batchTest`, then `node runBatchTest.js`.
 - Results are saved at the [log](./log) folder.
 - Accessing the exact tally count of each run: The tally count is stored in the messsage of the first step of each run.

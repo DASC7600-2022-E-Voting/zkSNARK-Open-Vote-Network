@@ -80,18 +80,19 @@ template encryptedVoteGen(n, numberOfOptions, encodingSize){
     // Encrpyted vote (c) = xi * Yi + vi * BASE
     signal output encryptedVote[2];
 
-    var encodingBits = 0;
+    var encodingBitsPerOption = 0;
     while (encodingSize > 0) {
         encodingSize /= 2;
-        encodingBits += 1;
+        encodingBitsPerOption += 1;
     }
-    encodingBits *= numberOfOptions;
+    var encodingBits = encodingBitsPerOption * numberOfOptions;
 
     component num2Bits = Num2Bits(encodingBits);
     num2Bits.in <== vote;
     signal vbits[encodingBits];
     for(var k = 0; k < encodingBits; k++) {
         vbits[k] <== num2Bits.out[k];
+        if (k % (encodingBitsPerOption - 1) > 0) vbits[k] === 0;
     }
 
     var voteSum = 0;

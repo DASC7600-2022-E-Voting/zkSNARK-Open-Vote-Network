@@ -131,7 +131,7 @@ contract('eVote', async (accounts) => {
             start_time: t2,
             duration: t3 - t2,
             status_ok: true,
-            cost: tx.receipt.gasUsedost
+            cost: tx.receipt.gasUsed
         })
 
         log+=`SetVerificationkeys: ${cost_s.toString()}\n`  

@@ -130,9 +130,11 @@ dist
 .pnp.*
 
 build
+!build/setup.sh
 circuits
 contracts
 helper/administrator.js
 helper/voters.js
 migrations
-test
+log
+/test

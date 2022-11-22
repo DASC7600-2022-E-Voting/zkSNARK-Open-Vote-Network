@@ -2,13 +2,21 @@ async  function mineToBlockNumber(number) {
   current = await web3.eth.getBlockNumber()
   while ( current <number) 
   {
-      await web3.currentProvider.send({
-          jsonrpc: "2.0",
-          method: "evm_mine",
-          id: "*"
-         }, function(err, result) {
-         });
-      current++
+    const a = new Promise((resolve, reject) => {
+      web3.currentProvider.send({
+        jsonrpc: "2.0",
+        method: "evm_mine",
+        id: "*"
+      }, function(err, result) {
+        if (err) {
+          return reject(err)
+        }
+        resolve(result)
+      });
+    })
+ 
+    await a;
+    current++
   }    
   }
   takeSnapshot = () => {

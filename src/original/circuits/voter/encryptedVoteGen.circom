@@ -1,4 +1,4 @@
-pragma circom 2.0.0;
+pragma circom 2.0.6;
 include "../../node_modules/circomlib/circuits/babyjub.circom";
 include "../../node_modules/circomlib/circuits/mux1.circom";
 include "../Utils/Utils.circom";
@@ -46,7 +46,7 @@ template split(n){
 
 
 
-template encryptedVoteGen(n){
+template encryptedVoteGen(n, numberOfOptions, encodingSize){
     /*
     // Generate the encrypted vote for a voter i
     // let N be the number of votes and  the neutral element be the point O = (0, 1)
@@ -56,7 +56,7 @@ template encryptedVoteGen(n){
     signal input Idx;
     // a secret key xi
     signal input xi;
-    // a vote vi \in {0, 1}
+    // a vote vi \in encoding of encodingSize, where n < encodingSize
     signal input vote;
 
     // VotingKeysBeforei = [voting keys from 0 to i-1 then append (N-i-1) neutral elements] = [xG0, xG1, ..., xGi-1, O, O, O, ..., O], |VotingKeysBeforei| = N-1 = n
@@ -80,12 +80,31 @@ template encryptedVoteGen(n){
     // Encrpyted vote (c) = xi * Yi + vi * BASE
     signal output encryptedVote[2];
 
-    //Assert that the vote is binary
-    (vote) * (vote - 1) === 0;
+    var encodingBitsPerOption = 0;
+    while (encodingSize > 0) {
+        encodingSize /= 2;
+        encodingBitsPerOption += 1;
+    }
+    var encodingBits = encodingBitsPerOption * numberOfOptions;
+
+    component num2Bits = Num2Bits(encodingBits);
+    num2Bits.in <== vote;
+    signal vbits[encodingBits];
+    for(var k = 0; k < encodingBits; k++) {
+        vbits[k] <== num2Bits.out[k];
+        if (k % (encodingBitsPerOption - 1) > 0) vbits[k] === 0;
+    }
+
+    var voteSum = 0;
+    for(var k = 0; k < encodingBits; k++) {
+        voteSum += vbits[k];
+    }
+    // only 1 opion is voted
+    voteSum === 1;
 
     // Check that the each pair of X and Y is on BabyJub curve
     component checkPoints = BabyCheckArray(n);
-    
+
     for(var i=0; i<n;i++){
         checkPoints.X[i] <== VotingKeysX[i];
         checkPoints.Y[i] <== VotingKeysY[i];
@@ -156,25 +175,21 @@ template encryptedVoteGen(n){
     xYi[0] <== Multiplier.out[0];
     xYi[1] <== Multiplier.out[1];
 
-    // Calcaulate the encrpyed vote(c)
-    // if vi = 0 => c = xYi + the neutral element (O)
-    // of vi = 1 => c = xYi + BASE8
-    component Multiplexer = MultiMux1(2);
+    // Calculate Vi * G
+    component Multiplier2 = scalarMulPoint();
     var BASE8[2] = [
         5299619240641551281634865583518297030282874472190772894086521144482721001553,
         16950150798460657717958625567821834550301663161624707787222815936182638968203
     ];
-    Multiplexer.c[0][0] <== 0;
-    Multiplexer.c[1][0] <== 1;
-    Multiplexer.c[0][1] <== BASE8[0];
-    Multiplexer.c[1][1] <== BASE8[1];
-    Multiplexer.s <== vote;
-    
+    Multiplier2.e <== vote;
+    Multiplier2.p[0] <== BASE8[0];
+    Multiplier2.p[1] <== BASE8[1];
+
     component Adder2 = BabyAdd();
     Adder2.x1 <== xYi[0];
     Adder2.y1 <== xYi[1];
-    Adder2.x2 <== Multiplexer.out[0];
-    Adder2.y2 <== Multiplexer.out[1];
+    Adder2.x2 <== Multiplier2.out[0];
+    Adder2.y2 <== Multiplier2.out[1];
 
     encryptedVote[0] <== Adder2.xout;
     encryptedVote[1] <== Adder2.yout;
@@ -182,4 +197,4 @@ template encryptedVoteGen(n){
 }
 
 
-component main{public [VotingKeysY, Idx]} = encryptedVoteGen(__NVOTERS__);
+component main{public [VotingKeysY, Idx]} = encryptedVoteGen(__NVOTERS__, __NOPTION__, __ENCODINGSIZE__);

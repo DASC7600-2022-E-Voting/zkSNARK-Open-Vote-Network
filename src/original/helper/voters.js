@@ -1,6 +1,7 @@
 const { FullProve } = require('./snarkjsHelper')
 const buildBabyjub = require("circomlibjs").buildBabyjub;
 const { Scalar }  =  require("ffjavascript");
+const { testVotesGen } = require('./voteGen')
 
 const PublicKeyGen_wasm = "../build/PublicKeyGen_js/PublicKeyGen.wasm";
 const PublicKeyGen_zkey = "../build/PublicKeyGenFinal.zkey";
@@ -34,7 +35,7 @@ async function genEncryptedVote(inputs) {
 }
 
 
-async function genPublicKeysAndProofs(count) {
+async function genPublicKeysAndProofs(count, nOptions, encodingSize, family, params) {
     const babyJub = await buildBabyjub();
     const p = babyJub.p;
     const F = babyJub.F;
@@ -42,19 +43,21 @@ async function genPublicKeysAndProofs(count) {
     const q = babyJub.subOrder;
     const pm1d2 = babyJub.pm1d2;
     
-    getPrivate = (x) => {
+    const getPrivate = (x) => {
         let pk = babyJub.mulPointEscalar(BASE8, x);
         if (Scalar.gt(F.toObject(pk[0]), pm1d2)) {
             return (Scalar.sub(q, x)).toString()
         }
         return x.toString();
     }
-    
 
-    result = [];
-    for (i=0; i<count ;i++){
-        let privateKey = getPrivate(Math.floor((Math.random()*10000)));
-        var { proof, publicSignals } = await genPublicKey(privateKey);
+    // generate binary vote sequence
+    const voteSequence = testVotesGen(count, family, params)
+
+    const result = [];
+    for (let i=0; i<count; i++){
+        const privateKey = getPrivate(Math.floor((Math.random()*10000)));
+        const { proof, publicSignals } = await genPublicKey(privateKey);
         const publicKeyProof = {
             a: [proof.pi_a[0], proof.pi_a[1]],
             b: [
@@ -63,17 +66,17 @@ async function genPublicKeysAndProofs(count) {
               ],
             c: [proof.pi_c[0], proof.pi_c[1]]
         }
-
-        
+        const voteOption = Math.floor((Math.random()*nOptions*10)) % nOptions;
+        const vote = encodingSize ** voteOption;
         result.push({
             "Idx": i,
             "privateKey": privateKey,
             "publicKey" : publicSignals,
-            "Vote": Math.floor((Math.random()*10)) % 2,
+            "Vote": nOptions > 2 ? vote : voteSequence[i],
             "encryptedVote": null,
             "publicKeyProof": publicKeyProof,
             "encryptedVoteProof": null
-        })      
+        });
     }
     return result
 }
@@ -81,23 +84,23 @@ async function genPublicKeysAndProofs(count) {
 async function genEncryptedVotesAndProofs(voters){
     let VotingKeysX = [];
     let VotingKeysY = [];
-    for (i=0; i<voters.length; i++){
+    for (let i=0; i<voters.length; i++){
         VotingKeysX.push(voters[i].publicKey[0])
         VotingKeysY.push(voters[i].publicKey[1])
     }
     let genWitnessTimeAll = 0;
     let genProofTimeAll = 0;
 
-    for (i=0; i<voters.length; i++){
-        inputs = { "VotingKeysX": VotingKeysX,
+    for (let i=0; i<voters.length; i++){
+        const inputs = { "VotingKeysX": VotingKeysX,
             "VotingKeysY": VotingKeysY,
             "Idx": voters[i].Idx,
             "xi": voters[i].privateKey,
             "vote": voters[i].Vote
         }
-        var {genWitnessTime, genProofTime, proof, publicSignals} = await genEncryptedVote(inputs)
+        const {genWitnessTime, genProofTime, proof, publicSignals} = await genEncryptedVote(inputs)
         genWitnessTimeAll += genWitnessTime
-        genProofTimeAll +=genProofTime 
+        genProofTimeAll += genProofTime
         voters[i].encryptedVote = [publicSignals[0], publicSignals[1]]
         const encryptedVoteProof = {
             a: [proof.pi_a[0], proof.pi_a[1]],
@@ -106,15 +109,15 @@ async function genEncryptedVotesAndProofs(voters){
                 [proof.pi_b[1][1], proof.pi_b[1][0]],
               ],
             c: [proof.pi_c[0], proof.pi_c[1]]
-        } 
+        }
         voters[i].encryptedVoteProof = encryptedVoteProof
     }
     console.log(`encryptedVoteGen_genWitnessTime = ${genWitnessTimeAll/voters.length} ms, encryptedVoteGen_genProofTime = ${genProofTimeAll/voters.length} ms`)
 
 }
 
-async function genTestData(length) {
-    const res = await genPublicKeysAndProofs(length);
+async function genTestData(length, nOptions, encodingSize, family, params) {
+    const res = await genPublicKeysAndProofs(length, nOptions, encodingSize, family, params);
     await genEncryptedVotesAndProofs(res);
     return res;
 }

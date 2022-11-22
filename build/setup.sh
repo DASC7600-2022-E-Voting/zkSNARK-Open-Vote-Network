@@ -74,12 +74,24 @@ function printStatistics(){
    """  >&2
 }
 
+# function to append statistics to ./log/setup_log.csv
+function appendSetupLogData(){
+   build_date="$1"
+   nVoters="$2"
+   nVotingOptions="$3"
+   desgin="$4"
+   citcuitName="$5"
+   statistics=($6)
+
+   echo """$build_date, $nVoters, $nVotingOptions, $design, $citcuitName, ${statistics[0]}, ${statistics[1]}, ${statistics[2]}, ${statistics[3]}""" >> ../log/setup_log.csv
+}
+
 # Main()
 
-useMessage="Useage: ./setup.sh -d ${GREEN}[original|sha256|progressiveSha256|progressivePoseidon]${NC} -n ${GREEN}[NUMBER_of_VOTERS]${NC}"
+useMessage="Usage: ./setup.sh -d ${GREEN}[original|sha256|progressiveSha256|progressivePoseidon]${NC} -n ${GREEN}[NUMBER_of_VOTERS]${NC} -o [NUMBER_of_VOTING_OPTIONS]"
 
 # Parsing arguments
-while getopts "hd:n:" opt
+while getopts "hd:n:o:" opt
 do
    case "$opt" in
       d) 
@@ -97,6 +109,28 @@ do
             exit 1
          fi
       ;;
+      o)
+         nVotingOptionsOpt="$OPTARG";
+         if [[ $nVotingOptionsOpt -le "0" ]]; then
+            echo $useMessage;
+            exit 1
+         fi
+      ;;
+      # f)
+      #    familyOpt="$OPTARG";
+      #    possibleFamilyOpt=('independent' 'sequential0' 'sequential1');
+      #    if [[ ! " ${possibleFamilyOpt[*]} " =~ " ${familyOpt} " ]]; then
+      #       echo $useMessage;
+      #       exit 1
+      #    fi
+      # ;;
+      # p)
+      #    paramOpt="$OPTARG";
+      #    if [[ $paramOpt -le "0"] || [$paramOpt -ge "1" ]]; then
+      #       echo $useMessage;
+      #       exit 1
+      #    fi
+      # ;;
       h) 
          echo $useMessage;
          exit 0
@@ -114,6 +148,7 @@ done
 
 design="${designOpt:-original}"
 nVoters="${nVotersOpt:-3}"
+nVotingOptions="${nVotingOptionsOpt:-3}"
 srcDir=../src/"$design"
 snarkjs=../node_modules/.bin/snarkjs
 
@@ -133,7 +168,7 @@ mkdir -p ../contracts
 mkdir -p ../test
 
 
-echo "Used Design: ${GREEN}$design${NC}, NUMBER_of_VOTERS = ${GREEN}$nVotersOpt${NC}"
+echo "Used Design: ${GREEN}$design${NC}, NUMBER_of_VOTERS = ${GREEN}$nVotersOpt${NC}, NUMBER_of_OPTIONS = ${GREEN}$nVotingOptionsOpt${NC}"
 
 # check dependencies
 if [[ ! -d "../node_modules" ]]; then
@@ -161,16 +196,23 @@ if [[ "$design" = "progressiveSha256" || "$design" = "sha256" ]]; then
    export NODE_OPTIONS=--max-old-space-size=32768
 fi
 
+encodingSize=$(node "../helper/findEncodingSize.js" "${nVoters}")
+echo "Using encoding size: ${encodingSize}"
+
 # compile and key Gen
 cp -r $srcDir/circuits/* ../circuits/
 
 PublicKeyGenStatistics=$(circuitCompileGenKey "PublicKeyGen" "verifier_PublicKey" "voter")
 
 sed -i "s/__NVOTERS__/$nVoters/g" ../circuits/voter/encryptedVoteGen.circom
+sed -i "s/__NOPTION__/$nVotingOptions/g" ../circuits/voter/encryptedVoteGen.circom
+sed -i "s/__ENCODINGSIZE__/$encodingSize/g" ../circuits/voter/encryptedVoteGen.circom
 encryptedVoteGenStatistics=$(circuitCompileGenKey "encryptedVoteGen" "verifier_EncrpytedVote" "voter")
 
 
 sed -i "s/__NVOTERS__/$nVoters/g" ../circuits/administrator/tallying.circom
+sed -i "s/__NOPTION__/$nVotingOptions/g" ../circuits/administrator/tallying.circom
+sed -i "s/__ENCODINGSIZE__/$encodingSize/g" ../circuits/administrator/tallying.circom
 tallyingStatistics=$(circuitCompileGenKey "tallying" "verifier_tallying" "administrator")
 
 
@@ -190,6 +232,10 @@ echo "${GREEN}Modifying contracts completed${NC}"
 
 cp -r $srcDir/test/* ../test/
 sed -i "s/__NVOTERS__/$nVoters/g" ../test/completeTest.js
+sed -i "s/__NOPTION__/$nVotingOptions/g" ../test/completeTest.js
+sed -i "s/__ENCODINGSIZE__/$encodingSize/g" ../test/completeTest.js
+# sed -i "s/__FAMILY__/$family/g" ../test/completeTest.js
+# sed -i "s/__PARAM__/$param/g" ../test/completeTest.js
 cp -r $srcDir/migrations/* ../migrations/
 cp -r $srcDir/helper/* ../helper/
 
@@ -199,7 +245,11 @@ printStatistics "PublicKeyGen" "$PublicKeyGenStatistics"
 printStatistics "encryptedVoteGen" "$encryptedVoteGenStatistics"
 printStatistics "tallying" "$tallyingStatistics"
 
-
+#save statistics as csv
+setup_datetime=$(date +'%Y%m%d%H%M%S')
+appendSetupLogData "$setup_datetime" "$nVoters" "$nVotingOptions" "$design" "PublicKeyGen" "$PublicKeyGenStatistics"
+appendSetupLogData "$setup_datetime" "$nVoters" "$nVotingOptions" "$design" "encryptedVoteGen" "$encryptedVoteGenStatistics"
+appendSetupLogData "$setup_datetime" "$nVoters" "$nVotingOptions" "$design" "tallying" "$tallyingStatistics"
 
 # print how to run test
 echo """
